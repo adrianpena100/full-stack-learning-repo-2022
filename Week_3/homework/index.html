@@ -10,6 +10,47 @@
 <body>
 	<div id='main-container'>
 		<div id='weather-container'>
+			<div>
+				<h3 id="current-date"></h3>
+				<h2 id="city"></h2>
+				<div class="current-container">
+					<div class="text-col">
+						<h4 id="weather-type"></h4>
+						<h1 id="weather-temp"></h1>
+						<h5 id="aqi"></h5>
+					</div>
+					<div class="icon-col">
+						<img id="current-icon">
+					</div>
+				</div>
+			</div>
+			<div id='fiveday'>
+				<div class="card">				
+					<h5 id="nextDate1"></h5>
+					<img id="icon1">
+					<h4 id="day1MinMax"></h4>
+				</div>
+				<div class ="card">
+					<h5 id="nextDate2"></h5>
+					<img id="icon2">
+					<h4 id="day2MinMax"></h4>
+				</div>
+				<div class="card">
+					<h5 id="nextDate3"></h5>
+					<img id="icon3">
+					<h4 id="day3MinMax"></h4>
+				</div>
+				<div class="card">
+					<h5 id="nextDate4"></h5>
+					<img id="icon4">
+					<h4 id="day4MinMax"></h4>
+				</div>
+				<div class="card">
+					<h5 id="nextDate5"></h5>
+					<img id="icon5">
+					<h4 id="day5MinMax"></h4>
+				</div>
+			</div>
 		</div> 
 	</div>
 	<div id='side-container'>
@@ -23,7 +64,7 @@
 
 <script>
 		// USE YOUR OWN API KEY
-		const apiKey = "";
+		const apiKey = "482077a69851b3a52657d892f35a699b";
 
         // variable that stores the city that is chosen
 		let city;
@@ -100,6 +141,118 @@
 				lon: lon
 			}
             // BEGIN CODING HERE
+			renderCity();
+			getWeatherData();
 		}
+
+		function renderCity() {
+			document.querySelector('#current-date').innerText = formatDate(0)
+			document.querySelector('#city').innerText = 'Weather for ' + city.fullName;
+		}
+
+		function getWeatherData() {
+			let apiCall = `https://api.openweathermap.org/data/2.5/weather?lat=${city.lat}&lon=${city.lon}&appid=${apiKey}`;
+				// calls the API
+				fetch(apiCall)
+					.then((response) => 
+						// after recieving a response, take the response from the server and convert it to JSON 
+						response.json()
+					)
+					.then((data) => {
+						weather = {
+							main: "",
+							temp: "",
+							low: "",
+							high: "",
+							icon: ""	
+						}
+						renderCurrentWeather(data);
+						getAQI();
+						renderFiveDayForecast();
+					});
+		}
+
+		function renderCurrentWeather(data) {
+			weather.main = data.weather[0].main;
+			document.querySelector('#weather-type').innerText = weather.main;
+			weather.temp = kelvinToFarenheit(data.main.temp);
+			document.querySelector('#weather-temp').innerText = weather.temp + '\u00B0';
+			weather.icon  = data.weather[0].icon;
+			document.getElementById("current-icon").src = "http://openweathermap.org/img/wn/"+ weather.icon + "@2x.png"
+		}
+
+		function getAQI() {
+			let apiCall = `http://api.openweathermap.org/data/2.5/air_pollution?lat=${city.lat}&lon=${city.lon}&appid=${apiKey}`;
+
+				// calls the API
+				fetch(apiCall)
+					.then((response) => 
+						// after recieving a response, take the response from the server and convert it to JSON 
+						response.json()
+					)
+					.then((data) => {
+						console.log(data);
+						aqi = data.list[0].main.aqi;
+						renderAQI();
+					});
+		}
+
+		function renderAQI() {
+			document.querySelector('#aqi').innerText = 'AQI: ' + aqi;
+		}
+
+		function renderFiveDayForecast() {
+			let apiCall = `http://api.openweathermap.org/data/2.5/forecast?lat=${city.lat}&lon=${city.lon}&appid=${apiKey}`
+
+				// calls the API
+				fetch(apiCall)
+					.then((response) => 
+						// after recieving a response, take the response from the server and convert it to JSON 
+						response.json()
+					)
+					.then((data) => {
+						renderFiveDayData(data);
+					});
+		}
+
+		function renderFiveDayData(data) {
+			let dayOfWeek = 0;
+			for(let i = 0; i < 5; i++) {
+				document.getElementById("nextDate" + (i + 1)).innerHTML = formatDate(i + 1)
+				let minMax = findMinAndMax(data, dayOfWeek)
+				currentMin = kelvinToFarenheit(minMax[0]) + '\u00B0'
+				currentMax = kelvinToFarenheit(minMax[1]) + '\u00B0'
+				document.getElementById("day" + (i + 1) + "MinMax").innerHTML = currentMin + " to " + currentMax
+				document.getElementById("icon" + (i + 1)).src = "http://openweathermap.org/img/wn/"+ minMax[2] + "@2x.png"
+				dayOfWeek += 7;
+			}
+		}
+
+		function findMinAndMax(data, day) {
+			let threeHourMin = []
+			let threeHourMax = []
+			let count = 0;
+			let currentIcon;
+			for(let i = day; i < day + 7; i++) {
+				threeHourMin.push(data.list[i].main.temp_min);
+				threeHourMax.push(data.list[i].main.temp_max);
+				if (count === 4) {
+					currentIcon = data.list[i].weather[0].icon;
+				}
+				count++;
+			}
+			let minMax = []
+			minMax.push(Math.min(...threeHourMin))
+			minMax.push(Math.max(...threeHourMax))
+			minMax.push(currentIcon);
+			console.log(minMax[2])
+			return minMax;
+		}
+
+		function kelvinToFarenheit(kelvin) {
+			let conversion = 1.8 * (kelvin - 273) + 32;
+			return Math.trunc(conversion);
+		}
+
 	</script>
 </html>

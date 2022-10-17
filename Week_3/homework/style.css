@@ -30,10 +30,45 @@
     align-items: center;
     background-color: #87b7ff;
   }
+
+  h1 {
+    font-size: 300%;
+  }
+
+  .current-container {
+    padding-top: 20px;
+    display: flex;
+    flex-direction: row;
+  }
+
+  .text-col {
+    flex-basis: 10%;
+  }
   
   #weather-container {
     height: 60%;
     width: 90%;
+  }
+
+  #fiveday {
+    display:flex; 
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: stretch;
+    flex-basis: auto;
+    flex-grow: auto;
+  }
+
+  .card {
+    background-color: white;
+    padding: 1em;
+    margin: 10px;
+    box-sizing: border-box;
+    border: 1px solid #0075FF;
+    border-radius: 5px;
+    width: 150px;
+    text-align: center;
+    justify-content: center;
   }
   
   #side-container {
